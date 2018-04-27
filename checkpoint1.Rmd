@@ -1,0 +1,122 @@
+---
+title: "EDA Projeto 1 Checkpoint 1"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(here)
+theme_set(theme_bw())
+```
+
+```{r}
+episodios = read_csv(here("data/series_from_imdb.csv"), 
+                    progress = FALSE,
+                    col_types = cols(.default = col_double(), 
+                                     series_name = col_character(), 
+                                     episode = col_character(), 
+                                     url = col_character(),
+                                     season = col_character())) %>% 
+    filter(series_name %in% c("Friends", "How I Met Your Mother"))
+```
+
+# Problema:
+Escolher entre 2 e 4 séries da base de dados e responder as seguintes questões:
+
+
+As séries escolhidas foram **How I Met Your Mother** e **Friends**, que são séries do mesmo gênero, com temáticas parecidas e com um numero próximo de temporadas.
+
+### Pergunta 1: Qual das séries que você escolheu é mais bem avaliada no IMDB? A diferença é grande? Pequena? Muda de acordo com as temporadas da série? 
+ 
+
+Fazendo a média da avaliação de todos os episódios das séries, temos que:
+```{r}
+media_episodios =
+  episodios %>%
+  group_by(series_name) %>%
+    summarise(user_rating = mean(user_rating)) %>%
+    arrange(desc(user_rating))
+
+media_episodios %>%
+  ggplot(aes(x = reorder(series_name, user_rating), y = user_rating, fill = series_name)) +
+    geom_col(width = 0.7) + 
+    scale_y_continuous(breaks=seq(0, 10, 1)) +
+    xlab("Séries") + ylab("Média das avaliações dos usuários") +
+    coord_flip() + labs(fill = "Séries")
+```
+
+Assim, podemos observar que utilizando a média das avaliações de todos os episódios de cada série como critério de comparação entre as séries, podemos observar que **Friends** leva uma pequena vantagens em relação à **How I Met Your Mother**.
+
+Contudo, utilizar a `média` de todos os dados do conjunto como instrumento de medida pode não ser uma boa forma de comparação, uma vez que essa forma de medir os dados é muito sussetível a valores muito discrepantes para um conjunto pequeno de dados.
+
+Visualizando dados de avaliações de usuários individualmente, temos:
+```{r}
+episodios %>%
+  ggplot(aes(x = series_name, y = user_rating, col = series_name)) +
+    geom_point() +
+    geom_jitter() + 
+    xlab("Séries") + ylab("Avaliação dos Usuários") + labs(fill = "Séries")
+```
+
+Vemos com isso que existem dados discrepantes que interferem na média das avaliações.
+
+
+Uma forma mais interessante então é avaliar os dados através da `mediana`, que nos dá um valor central no conjunto de dados e não sofre com interferências causadas por grandes discrepâncias nos dados.
+
+```{r}
+episodios %>%
+  ggplot(aes(x = series_name, y = user_rating, col=series_name)) +
+    geom_point() +
+    geom_jitter(width = .4) + 
+    geom_boxplot(color="black", alpha=0) +
+    xlab("Séries") + ylab("Avaliação dos Usuários") + labs(fill = "Séries")
+```
+
+Ao observarmos os valores das medianas (linha horizontal no meio da "caixa") vemos que **Friends** ainda continua na frente.
+
+Assim, podemos concluir que, por uma pequena vantagem, **Frieds** é mais bem avaliada que **How I Met Your Mother**.
+
+Vejamos como é o resultado se analisarmos por temporada:
+```{r}
+series_por_mediana =
+  episodios %>%
+  group_by(series_name, season) %>%
+    summarise(user_rating = median(user_rating)) %>%
+    arrange(desc(season))
+
+series_por_mediana %>%
+ggplot(aes(x=season, y=user_rating, fill=factor(series_name)))+
+  geom_bar(stat="identity", position="dodge")+
+  scale_fill_discrete(name="Gender",
+                      breaks=c(1, 2),
+                      labels=c("Male", "Female"))+
+  xlab("Temporada")+ylab("Mediana das avaliações dos episódios")
+```
+
+Vemos que realmente, mesmo analisando por temporada, **Friends** é mais bem avaliada que **How I Met Your Mother**.
+
+
+
+## Pergunta 2: Qual das séries que você escolheu tem episódios de qualidade mais irregular segundo o IMDB? A diferença é grande? Pequena?
+
+Utilizando o mesmo gráfico das medianas das séries, é possível ver a dispersão dos episódios:
+```{r}
+episodios %>%
+  ggplot(aes(x = series_name, y = user_rating, col=series_name)) +
+    geom_point() +
+    geom_jitter(width = .4) + 
+    geom_boxplot(color="black", alpha=0) +
+    xlab("Séries") + ylab("Avaliação dos Usuários") + labs(fill = "Séries")
+```
+
+Podemos ver que os votos de **Friends** estão muito mais concentrados em torno da mediana que os de **How I Met Your Mother**, assim, podemos dizer que **How I Met Your Mother** é muito mais irregular.
+
+
