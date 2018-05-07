@@ -1,0 +1,192 @@
+---
+title: "EDA Projeto 1 - Checkpoint 3"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(here)
+theme_set(theme_bw())
+```
+
+
+```{r}
+episodes = read_csv(here("data/series_from_imdb.csv"), 
+                    progress = FALSE,
+                    col_types = cols(.default = col_double(), 
+                                     series_name = col_character(), 
+                                     episode = col_character(), 
+                                     url = col_character(),
+                                     season = col_character()))
+```
+
+# Pergunta 1: A longevidade das séries está associada a sua qualidade
+
+Estamos interessados em avaliar se a longevidade das séries está associada á sua qualidade. Ou seja, as séries duram mais devido á sua qualidade? 
+
+É importante esclarecer os critérios a serem adorados para **longevidade** e **qualidade**.
+
+Mediremos a **logevidade** das séries através do número de episódios produzidos. Ou seja, as séries com maior longevidade são as que possuem mais episódios.  
+
+Mediremos **qualidade** através da ´Avaliação das Séries´, cada Série terá uma avaliação associada, que será calculada através da ´mediana´ da avaliação dos episódios. Ou seja, as séries com maior qualidade são as mais bem avaliadas.  
+
+> Veja aqui porque a ´mediana´ foi escolhida ao invés da ´média´: https://goo.gl/VjMgn4
+
+Para essa análise, contamos com **511** séries diferentes.
+```{r}
+diferent_series = 
+    episodes %>%
+    distinct(series_name)
+
+number_of_series = 
+    diferent_series %>%
+    summarise(Número_de_Series = n())
+
+show(number_of_series)
+```
+
+Contudo, vamos restringir essa análise ás séries com pelo menos 20 episódios, para evitar que casos como esse interfiram na nossa análise:
+
+```{r}
+series_by_longevity_and_quality =
+   episodes %>%
+   group_by(series_name) %>%
+   summarise(numero_episodios = n(),
+             avaliacao = median(user_rating)) 
+
+series_with_small_number_of_episodes =
+   series_by_longevity_and_quality %>%
+   filter(numero_episodios < 5)
+show(series_with_small_number_of_episodes)
+```
+
+Pois não queremos que séries com pouquíssimos episódios influenciem na nossa análise, tendo em vista que a medida de qualidade para estas não é tão confiável. 
+
+Removendo essas séries do nosso conjunto de dados, ficamos com **353** séries.
+```{r}
+series_by_longevity_and_quality =
+   episodes %>%
+   group_by(series_name) %>%
+   summarise(numero_episodios = n(),
+             avaliacao = median(user_rating)) %>%
+   filter(numero_episodios > 20)
+
+number_of_series_filtered = 
+    series_by_longevity_and_quality %>%
+    summarise(Número_de_Series_Com_Mais_de_20_Episódios = n())
+
+show(number_of_series_filtered)
+```
+
+
+
+Vamos agora verificar o ´Coeficiente de Correlação Linear´ entre o **Numero de Episódios** e a **Avaliações dos Usuários** para ver se há indícios fortes de uma relação linear entre essas duas variáveis.  
+
+> O ´Coeficiente de Correlação Linear´ é uma medida utilizada para medir o quão fortemente associadas estão duas variáveis distintas de forma linear. Ou seja, diz se, a medida que uma cresce, a outra cresce também ou se a medida que uma decresce a outra cresce e vice versa. O do coeficiente está sempre no intrevalo entre -1 e 1, e quanto mais próximo dos limites do intervalo, mais forte é a correlação entre as duas variáveis, indicando que há uma associação entre as duas.
+
+```{r}
+correlacao_linear_episodios_vs_avaliacoes = 
+    series_by_longevity_and_quality %>%
+    summarise(Coeficiente_de_Correlação_Linear = cor(avaliacao, numero_episodios))
+show(correlacao_linear_episodios_vs_avaliacoes)
+```
+
+Vemos que o ´Coeficiente de Correlação Linear´ está muito próximo de 0, o que infica uma relação muito fraca entre as duas variáveis.
+
+Vejamos um grafico que ilusta melhor essa associação fraca entre as variáveis.
+
+```{r}
+series_by_longevity_and_quality %>%
+    ggplot(aes(x = numero_episodios, y = avaliacao)) +
+        ggtitle("Avaliações por Número de Episódios") +
+        geom_point()
+```
+
+Esse gráfico não ilustra muita coisa por conta do número de pontos sobrepostos, assim, tiraremos alguamas amostras aleatórias, perdendo em precisão, mas ganhando em visualização dos dados.
+
+```{r}
+series_by_longevity_and_quality %>%
+    sample_n(60) %>%
+    ggplot(aes(x = numero_episodios, y = avaliacao)) +
+        ggtitle("Avaliações por Número de Episódios") +
+        geom_point()
+```
+
+
+Observando esse gŕafico, podemos dizer que não há uma função que se encaixe em algo parecido com isso, podendo afirmar assim, que a relação entre a **Qualidade** e a **Longevidade** das séries analisadas é muito próxima de ser nula.
+
+
+Sabendo que a **Qualidade** não é um fator que influencia de forma significativa na longevidade das séries, será que existe algum outro fator que influencie?  
+
+## A longevidade das séries está associada a sua popularidade?
+
+A **Longevidade** das séries será medida da mesma forma que na análise anterior.
+A **Popularidade** será medida através da **mediana** do número de votos que cada episódio das séries obteve.
+
+
+Ainda, usaremos a mesma abordagem em relação aos dados, onde removeremos do nosso conjunto as séries com menos de 20 episódios.
+
+Temos ainda **353** Séries a serem analisadas.
+
+Vamos agora observar o **Coeficiente de Correlação Linear** entre **Longevidade** e a **Popularidade** das Séries.
+```{r}
+series_by_longevity_and_popularity =
+   episodes %>%
+   group_by(series_name) %>%
+   summarise(numero_episodios = n(),
+             votos_usuarios = median(user_votes)) %>%
+   filter(numero_episodios > 20)
+
+correlacao_linear_episodios_vs_popularidade = 
+    series_by_longevity_and_popularity %>%
+    summarise(Coeficiente_de_Correlação_Linear = cor(numero_episodios, votos_usuarios))
+show(correlacao_linear_episodios_vs_popularidade)
+```
+
+Podemos observar que o Coeficiente de Correlação Linear entre **Longevidade** e **Popularidade** ficou ainda mais próximo de zero do que o de **Longevidade** e **Qualidade**, podendo afirmar assim que a relação entre essas duas é ínfima.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
