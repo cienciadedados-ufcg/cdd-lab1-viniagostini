@@ -153,22 +153,69 @@ show(correlacao_linear_episodios_vs_popularidade)
 Podemos observar que o Coeficiente de Correlação Linear entre **Longevidade** e **Popularidade** ficou ainda mais próximo de zero do que o de **Longevidade** e **Qualidade**, podendo afirmar assim que a relação entre essas duas é ínfima.
 
 
+# Pergunta 2: Os episódios mais populares são os mais amados ou os mais odiados?
+
+Para essa análise avaliaremos os **episódios mais populares** a partir do número de avaliações de usuários.
+
+Ainda, consideraremos **"amar" um episódio** significa dar nota 10 para o mesmo, ao passo que **"odiar" um episódio** significa atribuir nota 1.
+
+Assim, restingiremos nossa análise aos 30 episódios mais populares da nossa base de dados, que são:
+```{r}
+most_popular_episodes = 
+    episodes %>%
+    select(series_name, episode, user_votes, r1, r10) %>%
+    arrange(desc(user_votes)) %>%
+    head(30)
+show(most_popular_episodes)
+```
+
+Vejamos agora dois gráficos, que mostram a proporção de notas 10 e notas 1 por episódio:
+```{r}
+most_popular_episodes %>%
+    ggplot(aes(x = reorder(episode, -r10), y = r10, fill = series_name)) +
+    ggtitle("Notas 10 por episódio") +
+    geom_bar(stat = "identity") + coord_flip()
+```
+
+```{r}
+most_popular_episodes %>%
+    ggplot(aes(x = reorder(episode, -r1), y = r1, fill = series_name)) +
+    ggtitle("Notas 1 por episódio") +
+    geom_bar(stat = "identity") + coord_flip()
+```
 
 
+Parece que os episódios mais populares são muito mais amados que odiados, dos 30 episódios analisados, 19 receberam mais de 50% de votos "amorosos", ao passo que nenhum recebeu mais de 1% de votos de "ódio".
 
+Outra coisa interessante que podemos notar desses gráficos é que em uma base de dados com 511 Séries os 30 episódios mais populares estão concentrados nas mãos de apenas 4 séries.
 
+Podemos nos perguntar então:
 
+## Quais as séries que possuem os episódios mais populares?
 
+Para responder essa pergunta vamos expandir um pouco o número de episódios analisados.
 
+Selecionaremos os 300 episódios mais bem avaliados
+```{r}
+most_popular_episodes = 
+    episodes %>%
+    select(series_name, episode, user_votes, r1, r10) %>%
+    arrange(desc(user_votes)) %>%
+    head(300)
 
+series_with_most_popular_episodes =
+   most_popular_episodes %>%
+   group_by(series_name) %>%
+   summarise(episodios = n(),
+             avaliacoes = sum(user_votes))
 
+series_with_most_popular_episodes %>%
+    ggplot(aes(x = reorder(series_name, -episodios), y = episodios)) +
+    ggtitle("Numero de episódios entre os 300 mais populares") +
+    geom_bar(stat = "identity") + coord_flip()
+```
 
-
-
-
-
-
-
+Podemos observar que os 300 episódios mais populares estão concentrados nas mãos de apenas 25 séries. E ainda assim, há um discrepância grande entre essas séries.
 
 
 
