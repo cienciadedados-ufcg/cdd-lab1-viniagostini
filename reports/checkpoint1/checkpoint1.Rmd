@@ -61,7 +61,6 @@ Visualizando dados de avaliações de usuários individualmente, temos:
 ```{r}
 episodios %>%
   ggplot(aes(x = series_name, y = user_rating, col = series_name)) +
-    geom_point() +
     geom_jitter() + 
     xlab("Séries") + ylab("Avaliação dos Usuários") + labs(fill = "Séries")
 ```
@@ -74,7 +73,6 @@ Uma forma mais interessante então é avaliar os dados através da `mediana`, qu
 ```{r}
 episodios %>%
   ggplot(aes(x = series_name, y = user_rating, col=series_name)) +
-    geom_point() +
     geom_jitter(width = .4) + 
     geom_boxplot(color="black", alpha=0) +
     xlab("Séries") + ylab("Avaliação dos Usuários") + labs(fill = "Séries")
@@ -88,17 +86,17 @@ Vejamos como é o resultado se analisarmos por temporada:
 ```{r}
 series_por_mediana =
   episodios %>%
+  mutate(season = as.integer(season)) %>%
   group_by(series_name, season) %>%
     summarise(user_rating = median(user_rating)) %>%
-    arrange(desc(season))
+    arrange(desc(season)) 
 
 series_por_mediana %>%
 ggplot(aes(x=season, y=user_rating, fill=factor(series_name)))+
   geom_bar(stat="identity", position="dodge")+
-  scale_fill_discrete(name="Gender",
-                      breaks=c(1, 2),
-                      labels=c("Male", "Female"))+
-  xlab("Temporada")+ylab("Mediana das avaliações dos episódios")
+  scale_fill_discrete(name = "Série") +
+  scale_x_discrete(name="Temporada", limits=c(1:10)) +    
+  ylab("Mediana das avaliações dos episódios")
 ```
 
 Vemos que realmente, mesmo analisando por temporada, **Friends** é mais bem avaliada que **How I Met Your Mother**.
