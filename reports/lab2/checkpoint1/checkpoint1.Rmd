@@ -1,0 +1,61 @@
+---
+title: "EDA Projeto 1 Checkpoint 1"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_float: yes
+  html_notebook:
+    toc: yes
+    toc_float: yes
+---
+
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+library(here)
+library(plotly)
+theme_set(theme_bw())
+```
+
+
+```{r}
+episodes = read_csv(here("data/series_from_imdb.csv"), 
+                    progress = FALSE,
+                    col_types = cols(.default = col_double(), 
+                                     series_name = col_character(), 
+                                     episode = col_character(), 
+                                     url = col_character(),
+                                     season = col_character()))
+```
+
+```{r}
+most_popular_episodes = 
+    episodes %>%
+    select(series_name, episode, user_votes, r1, r10) %>%
+    arrange(desc(user_votes)) %>%
+    head(800)
+
+series_with_most_popular_episodes =
+   most_popular_episodes %>%
+   group_by(series_name) %>%
+   summarise(episodios = n(),
+             avaliacoes = sum(user_votes))
+
+plot_ly(
+  type = 'scatter',
+  x = series_with_most_popular_episodes$episodios,
+  y = series_with_most_popular_episodes$avaliacoes,
+  text = paste(
+               "<br>Nome:: ", series_with_most_popular_episodes$series_name,
+               "<br>Episódios: ", series_with_most_popular_episodes$episodios,
+               "<br>Número de avaliações: ", series_with_most_popular_episodes$avaliacoes),
+  hoverinfo = 'text',
+  mode = 'markers',
+  marker = list(size = series_with_most_popular_episodes$episodios,
+                color = 'rgba(255, 182, 193, .9)')
+  )
+```
+
+
+
