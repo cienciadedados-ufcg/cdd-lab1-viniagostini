@@ -5,21 +5,19 @@ output:
     df_print: paged
     toc: yes
     toc_float: yes
+    fig_width: 12
+    fig_height: 8
   html_notebook:
     toc: yes
     toc_float: yes
 ---
 
-
-```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE, fig.align='left'}
 library(tidyverse)
 library(here)
 library(plotly)
 theme_set(theme_bw())
-```
 
-
-```{r}
 episodes = read_csv(here("data/series_from_imdb.csv"), 
                     progress = FALSE,
                     col_types = cols(.default = col_double(), 
@@ -27,35 +25,35 @@ episodes = read_csv(here("data/series_from_imdb.csv"),
                                      episode = col_character(), 
                                      url = col_character(),
                                      season = col_character()))
-```
 
-```{r}
 most_popular_episodes = 
     episodes %>%
-    select(series_name, episode, user_votes, r1, r10) %>%
+    select(series_name, episode, user_votes, user_rating) %>%
     arrange(desc(user_votes)) %>%
-    head(800)
+    head(500)
 
 series_with_most_popular_episodes =
    most_popular_episodes %>%
    group_by(series_name) %>%
-   summarise(episodios = n(),
-             avaliacoes = sum(user_votes))
+   summarise(episodios = n(), avaliacoes = sum(user_votes), nota = median(user_rating))
 
 plot_ly(
   type = 'scatter',
   x = series_with_most_popular_episodes$episodios,
   y = series_with_most_popular_episodes$avaliacoes,
   text = paste(
-               "<br>Nome:: ", series_with_most_popular_episodes$series_name,
+               "<br>Nome: ", series_with_most_popular_episodes$series_name,
                "<br>Episódios: ", series_with_most_popular_episodes$episodios,
+               "<br>Avaliação Geral:", series_with_most_popular_episodes$nota,
                "<br>Número de avaliações: ", series_with_most_popular_episodes$avaliacoes),
   hoverinfo = 'text',
   mode = 'markers',
   marker = list(size = series_with_most_popular_episodes$episodios,
-                color = 'rgba(255, 182, 193, .9)')
+                color=series_with_most_popular_episodes$nota,
+                colorbar=list(
+                    title='Avaliação Geral da Série'
+                ),
+                colorscale='Viridis',
+                reversescale =T)
   )
 ```
-
-
-
