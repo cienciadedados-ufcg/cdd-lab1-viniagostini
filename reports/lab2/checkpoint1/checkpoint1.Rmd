@@ -5,13 +5,35 @@ output:
     df_print: paged
     toc: yes
     toc_float: yes
-    fig_width: 12
-    fig_height: 8
+    fig_width: 10
+    fig_height: 7
   html_notebook:
     toc: yes
     toc_float: yes
 ---
 
+# Problema 2 - Checkpoint 1: Revisitando uma visualização minha:
+
+A visualização escolida para ser explorada de forma interativa foi a do **Prob 1, CP 3** onde foram comparadas as Séries com a maior quantidade de episódios dentre os 300 mais populares.
+
+A primeira mudança em relação á visualização antiga é que trataremos de um pouco mais de episódios, aqui, iremos analisar os 500 episódios mais populares. (Os episódios mais populares são aqueles que obtiveram um maior número de avaliações.)
+
+Além disso, vamos enriquecer um pouco mais a visualização, exibindo também o número total de avaliações que uma série obteve nesses 500 episódios.
+
+Por fim, temos uma escala de cores que representa a **Avaliação Geral da Série** dada pela mediana das avaliações dos episódios levados em consideração nessa análise.
+
+Assim, temos essas informações dispostas no gráfico da seguinte forma:  
+    1. Cada ponto no gráfico representa uma Série.  
+    2. No **eixo X**: O total de episódios da série dentre os 500 mais populares.  
+    3. No **eixo Y**: A soma total de avaliações recebidas pela série.  
+    4. A **escala de cores** representa a **Avaliação Geral da Série**.  
+    5. E, por fim, o **tamanho do ponto** aumenta conforme a série tem mais episódios dentre os 500. (isso é legal para que pessamos visualizar algumas discrepâncias).  
+    
+**Dicas**:  
+1. Ao passar o mouse em cima de um ponto é possível ver qual é a série e as informações da mesma.  
+2. Existem muito pontos sobrepostos no gráfico, isso se dá por conta dos valores discrepantes. Contudo você pode dar zoom em qualquer parte do gráfico para uma visualização mais detalhada.  
+
+<br><br>
 ```{r setup, echo=FALSE, warning=FALSE, message=FALSE, fig.align='left'}
 library(tidyverse)
 library(here)
@@ -55,5 +77,14 @@ plot_ly(
                 ),
                 colorscale='Viridis',
                 reversescale =T)
-  )
+  ) %>%
+    layout(
+        title = "Popularidade das Séries",
+        xaxis = list(title = "Número total de avaliações recebidas pela série."),
+       yaxis = list(title = "Número de episódios dentre os 500 mais populares."))
+
+
 ```
+<br><br>
+A ideia aqui é visualizar a **discrepância de popularidade entre as séries**. Existem duas formas de se visualizar popularidade nesse contexto, pode-se dizer que uma série é mais popular que outra baseado no número total de avaliações a mesma recebeu, a outra forma de pensar é que séries com mais episódios dentre os mais populares são as mais populares.  
+Cabe ao leitor decidir qual é o melhor critério de popularidade, contudo, qualquer que seja o critério escolhido, a discrepância continua evidente.
