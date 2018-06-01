@@ -33,7 +33,7 @@ Estamos interessados em avaliar se a longevidade das séries está associada á 
 
 É importante esclarecer os critérios a serem adorados para **longevidade** e **qualidade**.
 
-Mediremos a **logevidade** das séries através do número de episódios produzidos. Ou seja, as séries com maior longevidade são as que possuem mais episódios.  
+Mediremos a **longevidade** das séries através do número de episódios produzidos. Ou seja, as séries com maior longevidade são as que possuem mais episódios.  
 
 Mediremos **qualidade** através da ´Avaliação das Séries´, cada Série terá uma avaliação associada, que será calculada através da ´mediana´ da avaliação dos episódios. Ou seja, as séries com maior qualidade são as mais bem avaliadas.  
 
@@ -106,17 +106,20 @@ Vejamos um grafico que ilusta melhor essa associação fraca entre as variáveis
 series_by_longevity_and_quality %>%
     ggplot(aes(x = numero_episodios, y = avaliacao)) +
         ggtitle("Avaliações por Número de Episódios") +
-        geom_point()
+        geom_point() +
+        labs(x = "Número de episódios", y = "Avaliação")
 ```
 
 Esse gráfico não ilustra muita coisa por conta do número de pontos sobrepostos, assim, tiraremos alguamas amostras aleatórias, perdendo em precisão, mas ganhando em visualização dos dados.
 
 ```{r}
+set.seed(0)
 series_by_longevity_and_quality %>%
     sample_n(60) %>%
     ggplot(aes(x = numero_episodios, y = avaliacao)) +
         ggtitle("Avaliações por Número de Episódios") +
-        geom_point()
+        geom_point() +
+        labs(x = "Número de episódios", y = "Avaliação")
 ```
 
 
@@ -147,6 +150,7 @@ series_by_longevity_and_popularity =
 correlacao_linear_episodios_vs_popularidade = 
     series_by_longevity_and_popularity %>%
     summarise(Coeficiente_de_Correlação_Linear = cor(numero_episodios, votos_usuarios))
+
 show(correlacao_linear_episodios_vs_popularidade)
 ```
 
@@ -174,14 +178,18 @@ Vejamos agora dois gráficos, que mostram a proporção de notas 10 e notas 1 po
 most_popular_episodes %>%
     ggplot(aes(x = reorder(episode, -r10), y = r10, fill = series_name)) +
     ggtitle("Notas 10 por episódio") +
-    geom_bar(stat = "identity") + coord_flip()
+    geom_bar(stat = "identity") + coord_flip() +
+    labs(x = "Episódios", y = "Porporção de notas 10") +
+    guides(fill = guide_legend(title = "Séries"))
 ```
 
 ```{r}
 most_popular_episodes %>%
     ggplot(aes(x = reorder(episode, -r1), y = r1, fill = series_name)) +
     ggtitle("Notas 1 por episódio") +
-    geom_bar(stat = "identity") + coord_flip()
+    geom_bar(stat = "identity") + coord_flip() +
+    labs(x = "Episódios", y = "Porporção de notas 1") +
+    guides(fill = guide_legend(title = "Séries"))
 ```
 
 
@@ -212,28 +220,12 @@ series_with_most_popular_episodes =
 series_with_most_popular_episodes %>%
     ggplot(aes(x = reorder(series_name, -episodios), y = episodios)) +
     ggtitle("Numero de episódios entre os 300 mais populares") +
-    geom_bar(stat = "identity") + coord_flip()
+    geom_bar(stat = "identity") + coord_flip() +
+    labs(x = "Séries", y = "Número de Episódios")
 ```
 
 Podemos observar que os 300 episódios mais populares estão concentrados nas mãos de apenas 25 séries. E ainda assim, há um discrepância grande entre essas séries.
 
+#Comentários
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  Relatório muito bom e com o raciocínio bem explicado, facilitando muito o entendimento. A resposta da pergunta gerada no final poderia ter sido mais bem explicada, mas não atrapalha muito. Deixei algumas sugestões com relação as amostras aleatórias e as legendas dos gráficos.
